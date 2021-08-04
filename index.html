@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket cursor for PCD</title>
+
+  <style>
+    #mouses {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  </style>
+</head>
+<body>
+  <form method="POST" id="nameForm">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" autofocus>
+  </form>
+
+  <div id="users"></div>
+
+  <canvas id="mouses"></canvas>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const enterSite = (e) => {
+      e.preventDefault()
+      const name = e.target[0].value
+      socket.emit('new user', name)
+      sessionStorage.setItem('name', name)
+      e.target.style.display = 'none'
+      window.addEventListener('mousemove', emitMouse)
+    }
+
+    const emitMouse = (e) => {
+      const pos = {user: sessionStorage.getItem('name'), x: e.x, y: e.y}
+      socket.emit('user move', pos)
+    }
+
+    const form = document.getElementById('nameForm')
+    form.addEventListener('submit', enterSite)
+
+    const drawMouses = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      Object.keys(userMouses).forEach((user) => {
+        ctx.fillStyle = 'black'
+        // console.log(userMouses[user])
+        ctx.fillRect(userMouses[user].x, userMouses[user].y, 10, 10)
+      })
+      
+    }
+  </script>
+  <script>
+    const socket = io()
+
+    const userMouses = {}
+
+    const usersDiv = document.getElementById('users')
+    const canvas = document.getElementById('mouses')
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    const ctx = canvas.getContext('2d')
+    socket.on('new user', (user) => {
+      const p = document.createElement('p')
+      p.textContent = user
+      usersDiv.appendChild(p)
+    })
+    socket.on('user move', (pos) => {
+      userMouses[pos.user] = {x: pos.x, y: pos.y}
+      drawMouses()
+    })
+
+    
+  </script>
+</body>
+</html>
