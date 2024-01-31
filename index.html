@@ -42,7 +42,10 @@
       sessionStorage.setItem('name', name)
       e.target.style.display = 'none'
       window.addEventListener('mousemove', emitMouse)
-      window.addEventListener('touchmove', emitMouse)
+      window.addEventListener('touchmove', (e) => {
+        e.preventDefault()
+        emitMouse(e)
+      })
     }
 
     const emitMouse = (e) => {
