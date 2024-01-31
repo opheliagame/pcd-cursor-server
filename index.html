@@ -12,6 +12,12 @@
       left: 0;
       top: 0;
     }
+
+    #cursor-img {
+      visibility: hidden;
+      width: 0.5rem;
+      height: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -23,6 +29,9 @@
   <div id="users"></div>
 
   <canvas id="mouses"></canvas>
+  <div id="cursor-img">
+    <picture><source type="image/avif" srcset="/static/img/mouse.avif 24w" sizes="(min-width: 30em) 50vw, 100vw"><img style="border-radius: 50%" alt="cursor" loading="lazy" decoding="async" src="/static/img/mouse.jpeg" width="24" height="24"></picture>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -43,12 +52,21 @@
     const form = document.getElementById('nameForm')
     form.addEventListener('submit', enterSite)
 
+    const cursorImg = document.querySelector('#cursor-img picture img')
+    cursorImg.addEventListener('load', () => {
+      drawMouses()
+    }, false)
+
     const drawMouses = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.01)"
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
       Object.keys(userMouses).forEach((user) => {
-        ctx.fillStyle = 'black'
-        // console.log(userMouses[user])
-        ctx.fillRect(userMouses[user].x, userMouses[user].y, 10, 10)
+        if(user == sessionStorage.getItem('name')) return
+        ctx.fillStyle = '#60A5FA'
+        ctx.font = '14px monospace'
+        const u = userMouses[user]
+        ctx.drawImage(cursorImg, u.x, u.y, 10, 10)
+        ctx.fillText(user, u.x, u.y+20)
       })
       
     }
@@ -63,10 +81,13 @@
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     const ctx = canvas.getContext('2d')
+
+    window.onresize  = (() => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    })
+
     socket.on('new user', (user) => {
-      const p = document.createElement('p')
-      p.textContent = user
-      usersDiv.appendChild(p)
     })
     socket.on('user move', (pos) => {
       userMouses[pos.user] = {x: pos.x, y: pos.y}
