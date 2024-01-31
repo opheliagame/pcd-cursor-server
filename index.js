@@ -4,6 +4,7 @@ const cors = require('cors')
 const app = express()
             .use(express.json())
             .use(cors())
+            .use(express.static('public'))
 const server = http.createServer(app)
 const { Server } = require('socket.io')
 const io = new Server(server, {
